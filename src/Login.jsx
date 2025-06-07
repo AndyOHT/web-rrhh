@@ -1,17 +1,23 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from './firebase'
 import './App.css'
 
 function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (email && password) {
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
       setIsAuthenticated(true)
       navigate('/home')
+    } catch (err) {
+      setError('Correo o contraseña incorrectos.')
     }
   }
 
@@ -33,6 +39,7 @@ function Login({ setIsAuthenticated }) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit">Ingresar</button>
       </form>
     </div>
