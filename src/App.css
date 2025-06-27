@@ -72,3 +72,23 @@ button:hover {
 .page p {
   color: #555;
 }
+
+.form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+  max-width: 400px;
+}
+
+.empleados-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.card {
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px #ccc;
+  background: #f9f9f9;
+}
