@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { db } from './firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
 import './App.css';
 
 function Empleados() {
@@ -12,8 +19,10 @@ function Empleados() {
     nacimiento: '',
     correo: '',
     telefono: '',
-    departamento: '', // Nuevo campo
+    departamento: '',
   });
+
+  const [editandoId, setEditandoId] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,7 +31,15 @@ function Empleados() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'empleados'), form);
+      if (editandoId) {
+        await updateDoc(doc(db, 'empleados', editandoId), form);
+        alert('Empleado actualizado correctamente.');
+        setEditandoId(null);
+      } else {
+        await addDoc(collection(db, 'empleados'), form);
+        alert('Empleado agregado correctamente.');
+      }
+
       setForm({
         nombre: '',
         apellidoP: '',
@@ -32,9 +49,38 @@ function Empleados() {
         telefono: '',
         departamento: '',
       });
+
       fetchEmpleados();
     } catch (error) {
       console.error('Error al guardar:', error);
+      alert('Ocurrió un error al guardar los datos.');
+    }
+  };
+
+  const handleEditar = (emp) => {
+    setForm({
+      nombre: emp.nombre,
+      apellidoP: emp.apellidoP,
+      apellidoM: emp.apellidoM,
+      nacimiento: emp.nacimiento,
+      correo: emp.correo,
+      telefono: emp.telefono,
+      departamento: emp.departamento,
+    });
+    setEditandoId(emp.id);
+  };
+
+  const handleEliminar = async (id) => {
+    const confirmar = window.confirm('¿Estás seguro de eliminar este empleado?');
+    if (!confirmar) return;
+
+    try {
+      await deleteDoc(doc(db, 'empleados', id));
+      alert('Empleado eliminado correctamente.');
+      fetchEmpleados();
+    } catch (error) {
+      console.error('Error al eliminar:', error);
+      alert('Ocurrió un error al eliminar el empleado.');
     }
   };
 
@@ -63,7 +109,7 @@ function Empleados() {
         <input name="correo" type="email" placeholder="Correo" value={form.correo} onChange={handleChange} required />
         <input name="telefono" placeholder="Teléfono" value={form.telefono} onChange={handleChange} required />
         <input name="departamento" placeholder="Departamento" value={form.departamento} onChange={handleChange} required />
-        <button type="submit">Agregar empleado</button>
+        <button type="submit">{editandoId ? 'Actualizar empleado' : 'Agregar empleado'}</button>
       </form>
 
       <div className="empleados-grid">
@@ -74,6 +120,8 @@ function Empleados() {
             <p><strong>Correo:</strong> {emp.correo}</p>
             <p><strong>Teléfono:</strong> {emp.telefono}</p>
             <p><strong>Departamento:</strong> {emp.departamento}</p>
+            <button onClick={() => handleEditar(emp)}>Editar</button>
+            <button onClick={() => handleEliminar(emp.id)} style={{ backgroundColor: 'red', color: 'white' }}>Eliminar</button>
           </div>
         ))}
       </div>
